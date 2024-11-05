@@ -7,21 +7,32 @@
 #include "driver/spi_common.h"
 #include "driver/spi_master.h"
 #include "driver/gpio.h"
+#include <driver/ledc.h>
 
 //Shift reg pins
-#define LATCH GPIO_NUM_10
-#define SCK GPIO_NUM_12
-#define S_DATA GPIO_NUM_11
-#define OUT_EN GPIO_NUM_3
+#define LATCH GPIO_NUM_23
+#define SCK GPIO_NUM_14
+#define S_DATA GPIO_NUM_13
+#define OUT_EN GPIO_NUM_22
 
 //Dynamic ind pins
-#define IN_PWR_CTRL1 40
-#define IN_PWR_CTRL2 41
-#define IN_PWR_CTRL3 GPIO_NUM_39
-#define IN_PWR_CTRL4 GPIO_NUM_16
+// #define IN_PWR_CTRL1 40
+// #define IN_PWR_CTRL2 41
+// #define IN_PWR_CTRL3 GPIO_NUM_39
+// #define IN_PWR_CTRL4 GPIO_NUM_16
+#define OUT1_CHANNEL LEDC_CHANNEL_2
+#define OUT2_CHANNEL LEDC_CHANNEL_3
+#define OUT3_CHANNEL LEDC_CHANNEL_4
+#define OUT4_CHANNEL LEDC_CHANNEL_5
 
-#define SPI_NUM SPI3_HOST
+#define OUT1_GPIO GPIO_NUM_12
+#define OUT2_GPIO GPIO_NUM_14
+#define OUT3_GPIO GPIO_NUM_13
+#define OUT4_GPIO GPIO_NUM_15
+
+#define SPI_NUM HSPI_HOST
 
 esp_err_t indication_spi_init();
+esp_err_t indication_dynamic_init();
 void indication_set_num(uint8_t num);
-void set_num_to_disp(int num,bool uZv);
+void set_num_to_disp(int num,uint8_t numPos);

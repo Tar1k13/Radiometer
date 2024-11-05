@@ -19,11 +19,14 @@
 #include "string.h"
 #include <driver/ledc.h>
 #include "indication.h"
+#include "driver/uart.h"
 
 char *TAG = "BLE-Server";
 uint8_t ble_addr_type;
 
 gptimer_handle_t gptimer = NULL;
+
+QueueHandle_t uart_queue;
 
 void ble_app_advertise(void);
 void task_test(void *pvParameters);
@@ -146,6 +149,19 @@ void host_task(void *param)
 {
     nimble_port_run(); // This function will return only when nimble_port_stop() is executed
 }
+static int iter=0;
+void decode_nmea(char *nmea,int size){
+
+        char *str=strtok(nmea,",");
+        while(str){
+                // ESP_LOGI("I","%s",str);
+            ESP_LOGI("I","%s",str);
+            str=strtok(NULL,",");
+        }
+    // ESP_LOGI("I","-------------------------");
+    // free(str);
+}
+
 
 void app_main()
 {
@@ -170,17 +186,27 @@ void app_main()
     ledc_set_duty(LEDC_LOW_SPEED_MODE,LEDC_CHANNEL_0,255/1.7);
     ledc_update_duty(LEDC_LOW_SPEED_MODE,LEDC_CHANNEL_0);
 
-    //SOUND PWM
-    ledc_channel_config_t ledc_channel_sound = {
-        .speed_mode     = LEDC_LOW_SPEED_MODE,
-        .channel        = LEDC_CHANNEL_1,
-        .timer_sel      = LEDC_TIMER_0,
-        .intr_type      = LEDC_INTR_DISABLE,
-        .gpio_num       = 2,
-        .duty           = 0,
-        .hpoint         = 0
-    };
-    ESP_ERROR_CHECK(ledc_channel_config(&ledc_channel_sound));
+    indication_spi_init();
+    indication_dynamic_init();
+
+    //GPS conf
+    // const uart_port_t uart_num = UART_NUM_2; //TO BE MODIFED
+    // uart_config_t uart_config = {
+    //     .baud_rate = 9600,
+    //     .data_bits = UART_DATA_8_BITS,
+    //     .parity = UART_PARITY_DISABLE,
+    //     .stop_bits = UART_STOP_BITS_1,
+    //     .flow_ctrl = UART_HW_FLOWCTRL_CTS_RTS,
+    //     .rx_flow_ctrl_thresh = 122,
+    // };
+    // ESP_ERROR_CHECK(uart_param_config(uart_num, &uart_config));
+    // ESP_ERROR_CHECK(uart_set_pin(UART_NUM_2, 17, 16, UART_PIN_NO_CHANGE, UART_PIN_NO_CHANGE));
+    // const int uart_buffer_size = (1024 * 2);
+    // // Install UART driver using an event queue here
+    // ESP_ERROR_CHECK(uart_driver_install(UART_NUM_2, uart_buffer_size, 
+    //                                         uart_buffer_size, 10, &uart_queue, 0));
+    // xTaskCreate(gps_uart_task, "uart_event_task", 4048, NULL, 4, NULL);
+    
 
     count_rad_init();
 

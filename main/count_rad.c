@@ -27,16 +27,17 @@ static uint8_t pos=0;
 static int outRadiation;
 
 static void play_sound(void *pvParameters){
+    gpio_set_direction(2,GPIO_MODE_OUTPUT);
     while(1){
         uint32_t val;
         xQueueReceive(pulseQueue,&val,portMAX_DELAY);
-
         ledc_set_duty(LEDC_LOW_SPEED_MODE,LEDC_CHANNEL_1,255/2);
         ledc_update_duty(LEDC_LOW_SPEED_MODE,LEDC_CHANNEL_1);
-        vTaskDelay(50/portTICK_PERIOD_MS);
+        vTaskDelay(10/portTICK_PERIOD_MS);
 
-        ledc_set_duty(LEDC_LOW_SPEED_MODE,LEDC_CHANNEL_1,0);
-        ledc_update_duty(LEDC_LOW_SPEED_MODE,LEDC_CHANNEL_1);
+        // ledc_set_duty(LEDC_LOW_SPEED_MODE,LEDC_CHANNEL_1,0);
+        // ledc_update_duty(LEDC_LOW_SPEED_MODE,LEDC_CHANNEL_1);
+        // ledc_stop(LEDC_LOW_SPEED_MODE,LEDC_CHANNEL_1,0);
         vTaskDelay(10/portTICK_PERIOD_MS);
     }
 }
@@ -132,7 +133,8 @@ static void count_rad(void *pvParameters){
 static void changeSpeed(void *pvParameters){
     while(1){
         ulTaskNotifyTake(pdTRUE,portMAX_DELAY);
-        if(speedCount>6){
+        if(speedCount>6 && currentTimeDelay!=3){
+            ESP_DRAM_LOGI("SPEED IVOGED","%d",speedCount);
             gptimer_stop(gptimer);
             gptimer_disable(gptimer);
             gptimer_alarm_config_t alarm_conf={
@@ -147,8 +149,13 @@ static void changeSpeed(void *pvParameters){
             ESP_ERROR_CHECK(gptimer_enable(gptimer));
             gptimer_start(gptimer);
             currentTimeDelay=3;
+
+            // ESP_LOGI("I","Change speed invoked");
         }
-        else if(currentTimeDelay!=5){
+        else if(currentTimeDelay==3 && speedCount<3){  //STEP CHANGE OF RADIATION IN LOW DIRECTION
+            for(uint8_t i=0;i<10;i++){
+                radDat[i]=0;
+            }
             gptimer_stop(gptimer);
             gptimer_disable(gptimer);
             gptimer_alarm_config_t alarm_conf={
@@ -163,7 +170,24 @@ static void changeSpeed(void *pvParameters){
             ESP_ERROR_CHECK(gptimer_enable(gptimer));
             gptimer_start(gptimer);
             currentTimeDelay=5;
+
         }
+        // else if(currentTimeDelay!=5){
+        //     gptimer_stop(gptimer);
+        //     gptimer_disable(gptimer);
+        //     gptimer_alarm_config_t alarm_conf={
+        //         .alarm_count=5*2000,
+        //         .flags.auto_reload_on_alarm=true
+        //     };
+        //     gptimer_set_alarm_action(gptimer,&alarm_conf);
+        //     gptimer_event_callbacks_t cbs = {
+        //         .on_alarm = main_timer // register user callback
+        //     };
+        //     ESP_ERROR_CHECK(gptimer_register_event_callbacks(gptimer, &cbs, NULL));
+        //     ESP_ERROR_CHECK(gptimer_enable(gptimer));
+        //     gptimer_start(gptimer);
+        //     currentTimeDelay=5;
+        // }
         speedCount=0;
     }
 }
