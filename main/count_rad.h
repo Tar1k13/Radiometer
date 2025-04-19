@@ -6,7 +6,7 @@
 #include "freertos/task.h"
 #include "freertos/event_groups.h"
 
-#define TUBE_PIN GPIO_NUM_27
+#define TUBE_PIN GPIO_NUM_3
 #define DEFAULT_MONITOR_PERIOD 5
 
 void count_rad_init();

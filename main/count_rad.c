@@ -27,7 +27,7 @@ static uint8_t pos=0;
 static int outRadiation;
 
 static void play_sound(void *pvParameters){
-    gpio_set_direction(2,GPIO_MODE_OUTPUT);
+    // gpio_set_direction(2,GPIO_MODE_OUTPUT);
     while(1){
         uint32_t val;
         xQueueReceive(pulseQueue,&val,portMAX_DELAY);
@@ -37,7 +37,7 @@ static void play_sound(void *pvParameters){
 
         // ledc_set_duty(LEDC_LOW_SPEED_MODE,LEDC_CHANNEL_1,0);
         // ledc_update_duty(LEDC_LOW_SPEED_MODE,LEDC_CHANNEL_1);
-        // ledc_stop(LEDC_LOW_SPEED_MODE,LEDC_CHANNEL_1,0);
+        ledc_stop(LEDC_LOW_SPEED_MODE,LEDC_CHANNEL_1,0);
         vTaskDelay(10/portTICK_PERIOD_MS);
     }
 }
@@ -59,11 +59,13 @@ static void tim_init(){
         .direction=GPTIMER_COUNT_UP,
     }; 
     gptimer_new_timer(&timer_conf,&gptimer);
+
     gptimer_alarm_config_t alarm_conf={
         .alarm_count=5*2000,
         .flags.auto_reload_on_alarm=true
     };
     gptimer_set_alarm_action(gptimer,&alarm_conf);
+
     gptimer_event_callbacks_t cbs = {
         .on_alarm = main_timer // register user callback
     };
@@ -95,6 +97,7 @@ static void IRAM_ATTR regRad(void* arg){
     count++;
     speedCount++;
     BaseType_t xTaskWokenByReceive = pdTRUE;
+    
     xQueueSendFromISR(pulseQueue,&count,&xTaskWokenByReceive);
     // uint64_t start_time=esp_timer_get_time();
     // while((esp_timer_get_time()-start_time)<250);
@@ -205,8 +208,8 @@ void count_rad_init(){
 
     pulseQueue = xQueueCreate(100, sizeof(uint32_t));
     xTaskCreate(play_sound,"play_sound",1024,NULL,3,NULL);
-    xTaskCreate(changeSpeed,"changeSpeed",1024,NULL,3,&changeSpeedTask);
-    xTaskCreate(count_rad,"count_rad",2048,NULL,2,&countRadTask);
+    xTaskCreate(changeSpeed,"changeSpeed",1024,NULL,4,&changeSpeedTask);
+    xTaskCreate(count_rad,"count_rad",4000,NULL,2,&countRadTask);
 }
 
 int get_radiation(){

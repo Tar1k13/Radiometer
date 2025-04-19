@@ -5,4 +5,9 @@
 cmake_minimum_required(VERSION 3.16)
 
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
+add_compile_definitions(ESP_TESTING_BUILD)
+# add_compile_definitions(ESP_MAIN_BUILD)
 project(Doz)
+
+
+
